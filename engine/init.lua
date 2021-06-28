@@ -43,6 +43,14 @@ if not path:find("init") then
   require(path .. ".game.hitfx")
 end
 
+
+function setWindow(width, height, userFlags)
+  flags = {highdpi = true, vsync = 1, msaa = 0}
+  for key, value in pairs(userFlags or {}) do flags[key] = value end
+  love.window.setMode(width, height, flags)
+end
+
+
 function engine_run(config)
   if not web then
     love.filesystem.setIdentity(config.game_name)
@@ -64,17 +72,18 @@ function engine_run(config)
     sx, sy = window_width/(config.game_width or 480), window_height/(config.game_height or 270)
     ww, wh = window_width, window_height
 
-    if state.sx and state.sy then
-      sx, sy = state.sx, state.sy
-      love.window.setMode(state.sx*gw, state.sy*gh, {vsync = config.vsync, msaa = msaa or 0, display = config.display})
-    else
+    local flags = {vsync = config.vsync, msaa = msaa or 0, display = config.display, fullscreen = state.fullscreen or false}
+    if flags.fullscreen or not (state.sx and state.sy) then
       state.sx, state.sy = sx, sy
-      love.window.setMode(window_width, window_height, {vsync = config.vsync, msaa = msaa or 0, display = config.display})
+      setWindow(window_width, window_height, flags)
+    else
+      sx, sy = state.sx, state.sy
+      setWindow(state.sx*gw, state.sy*gh, flags)
     end
     love.window.setTitle(config.game_name)
 
   else
-    gw, gh = config.game_width or 480, config.game_height or 270 
+    gw, gh = config.game_width or 480, config.game_height or 270
     sx, sy = 2, 2
     ww, wh = 960, 540
   end
